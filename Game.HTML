@@ -1,0 +1,97 @@
+<html lang="en">
+
+<head>
+    <script>
+        var canvas;
+        var context;
+
+        var wood;
+        var woodMax;
+        var rock;
+        var rockMax;
+        var gold;
+        var goldMax;
+
+        var LumberPower;
+    
+    
+
+
+        function treeClick() {
+            increaseX(LumberPower,"wood");
+        }
+
+        function increaseX(i,name) {
+            switch(name) {
+                case "wood": wood.innerHTML = parseInt(wood.innerHTML) + i; break;
+                case "woodMax": woodMax.innerHTML = parseInt(woodMax.innerHTML) + i; break;
+                case "rock": rock.innerHTML = parseInt(rock.innerHTML) + i; break;
+                case "rockMax": rockMax.innerHTML = parseInt(rockMax.innerHTML) + i; break;
+                case "gold": gold.innerHTML = parseInt(gold.innerHTML) + i; break;
+                case "goldMax": goldMax.innerHTML = parseInt(goldMax.innerHTML) + i; break;
+                
+            }
+        }
+    
+        function restartGame() {
+            wood.innerHTML = 0;
+            woodMax.innerHTML = 25;
+            rock.innerHTML = 0;
+            rockMax.innerHTML = 25;
+            gold.innerHTML = 0;
+            goldMax.innerHTML = 22;
+
+            LumberPower = 1;
+
+        }
+
+        function firstStart() {
+            canvas = window.document.getElementById("canvas");
+            context = canvas.getContext("2d");
+
+            wood = window.document.getElementById("wood"); 
+            woodMax = window.document.getElementById("woodMax"); 
+            rock = window.document.getElementById("rock");
+            rockMax = window.document.getElementById("rockMax"); 
+            gold = window.document.getElementById("gold"); 
+            goldMax = window.document.getElementById("goldMax"); 
+            restartGame();
+
+            var imgHome = new Image(); // 32x32
+            imgHome.src = "House.png";
+            imgHome.onload = function() { context.drawImage(imgHome,268,268); }
+
+            var imgTree = new Image();
+            imgTree.src = "Tree.png";
+            imgTree.onload = function() { context.drawImage(imgTree,380,190); }
+            imgTree.addEventListener("click",treeClick());
+
+        }
+        
+
+        
+    
+    </script>
+</head>
+
+<body onLoad="firstStart()">
+    <div style="background-color:rgb(85, 158, 182);height: 100px;width: 602px; display: inline-block;">
+        <div style="font-size: large; font-weight: bolder;text-indent: 8px">--A Game--</div><BR>
+        <span style="padding-left: 8px;font-weight: bolder">Wood: </span> <span id="wood">0</span> <span>/</span> <span id="woodMax">20</span>
+        <span style="padding-left: 8px;font-weight: bolder">Rock: </span> <span id="rock">0</span> <span>/</span> <span id="rockMax">30</span>
+        <span style="padding-left: 8px;font-weight: bolder">Gold: </span> <span id="gold">0</span> <span>/</span> <span id="goldMax">30</span>
+        <BR>
+        <span style="padding-left: 8px"> </span>
+        <button onclick="restartGame()">Restart</button>
+        <button onclick="increaseX(1,'wood')">More Wood</button>
+    </div>
+
+    <canvas id="canvas" height="560" width="600" style="border: 1px solid black">
+        
+    </canvas>
+
+    
+
+
+</body>
+</html>
