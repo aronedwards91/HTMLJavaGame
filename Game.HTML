@@ -2,36 +2,103 @@
 
 <head>
     <script>
-        var canvas;
-        var context;
-
+        //var setup
+        //var *E is a link to a HTML element
+    
         var wood;
         var woodMax;
+        var woodMaxInc;
+        var wood4MaxWood;
+        var rock4MaxWood;
+        var gold4MaxWood;
+
+        var wood4WoodPwr;
+        var rock4WoodPwr;
+        var gold4WoodPwr;
+
         var rock;
         var rockMax;
+        var rockMaxInc;
+        var wood4MaxRock;
+        var rock4MaxRock;
+        var gold4MaxRock;
+
         var gold;
         var goldMax;
+        var goldMaxInc;
+        var wood4MaxGold;
+        var rock4MaxGold;
+        var gold4MaxGold;
 
-        var LumberPower;
+        var woodPower;
+        var rockPower;
+        var goldPower;
+
+        var warningE;
     
-    
+        var minutes;
+        var seconds;
 
+        var costplus = 1.4;
 
-        function treeClick() {
-            increaseX(LumberPower,"wood");
+        function treeClick() { increaseX(woodPower,wood,woodMax); }
+        function rockClick() { increaseX(rockPower,rock,rockMax); }
+        function goldClick() { increaseX(goldPower,gold,goldMax); }
+
+        function increaseX(i,resource,resMax) {
+            //increases gold resource, checks if above Max and stops if so
+            var begin = resource;
+            var Max = resMax;
+            var Cur = parseInt(begin.innerHTML) + i;
+
+            if (Cur > parseInt(Max.innerHTML)) {
+                begin.innerHTML = parseInt(Max.innerHTML);
+            } else {
+                begin.innerHTML = Cur;
+            }
+
         }
 
-        function increaseX(i,name) {
-            switch(name) {
-                case "wood": wood.innerHTML = parseInt(wood.innerHTML) + i; break;
-                case "woodMax": woodMax.innerHTML = parseInt(woodMax.innerHTML) + i; break;
-                case "rock": rock.innerHTML = parseInt(rock.innerHTML) + i; break;
-                case "rockMax": rockMax.innerHTML = parseInt(rockMax.innerHTML) + i; break;
-                case "gold": gold.innerHTML = parseInt(gold.innerHTML) + i; break;
-                case "goldMax": goldMax.innerHTML = parseInt(goldMax.innerHTML) + i; break;
-                
+        function increaseVal(value,increment,wcost,rcost,gcost,incrGrowth) {
+            var woodcostHold = parseInt(wcost.innerHTML);
+            var rockcostHold = parseInt(rcost.innerHTML);
+            var goldcostHold = parseInt(gcost.innerHTML);
+
+            //check if affordable
+            if(woodcostHold <= parseInt(wood.innerHTML) && rockcostHold <= parseInt(rock.innerHTML) && goldcostHold <= parseInt(gold.innerHTML) ) {
+                //pay
+                increaseX((woodcostHold * -1),wood,woodMax);
+                increaseX((rockcostHold * -1),rock,rockMax);
+                increaseX((goldcostHold * -1),gold,goldMax);
+                //increment values
+                value.innerHTML = parseInt(value.innerHTML) + increment;
+                wcost.innerHTML = parseInt(woodcostHold * costplus);
+                rcost.innerHTML = parseInt(rockcostHold * costplus);
+                gcost.innerHTML = parseInt(goldcostHold * costplus);
+                increment = increment + incrGrowth;
+
+            } else {
+                warningE.innerHTML = "cannot afford";
+                setTimeout(warningReset,600)
             }
         }
+
+        function WoodMaxClick() {
+            increaseVal(woodMax,woodMaxInc,wood4MaxWood,rock4MaxWood,gold4MaxWood,5);
+        }
+        function RockMaxClick() {
+            increaseVal(rockMax,rockMaxInc,wood4MaxRock,rock4MaxRock,gold4MaxRock,5);
+        }
+        function GoldMaxClick() {
+            increaseVal(goldMax,goldMaxInc,wood4MaxGold,rock4MaxGold,gold4MaxGold,3);
+        }
+
+        //rework increaseVal function
+        function WoodPowerInc() {
+            increaseVal(woodPower,1,wood4WoodPwr,rock4WoodPwr,gold4WoodPwr,0);
+        }
+
+        function warningReset() { warningE.innerHTML = "";}
     
         function restartGame() {
             wood.innerHTML = 0;
@@ -41,57 +108,215 @@
             gold.innerHTML = 0;
             goldMax.innerHTML = 22;
 
-            LumberPower = 1;
+            woodMaxInc = 5;
+            rockMaxInc = 5;
+            goldMaxInc = 5;
+
+            woodPower = 2;
+            rockPower = 2;
+            goldPower = 2;
+
+            minutes.innerHTML = 0;
+            seconds.innerHTML = 0;
 
         }
 
         function firstStart() {
-            canvas = window.document.getElementById("canvas");
-            context = canvas.getContext("2d");
-
+        
             wood = window.document.getElementById("wood"); 
             woodMax = window.document.getElementById("woodMax"); 
             rock = window.document.getElementById("rock");
             rockMax = window.document.getElementById("rockMax"); 
             gold = window.document.getElementById("gold"); 
             goldMax = window.document.getElementById("goldMax"); 
+
+            wood4MaxWood = document.getElementById("wood4MaxWood");
+            rock4MaxWood = document.getElementById("rock4MaxWood");
+            gold4MaxWood = document.getElementById("gold4MaxWood");
+
+            wood4WoodPwr = document.getElementById("wood4WoodPwr");
+            rock4WoodPwr = document.getElementById("rock4WoodPwr");
+            gold4WoodPwr = document.getElementById("gold4WoodPwr");
+
+            wood4MaxRock = document.getElementById("wood4MaxRock");
+            rock4MaxRock = document.getElementById("rock4MaxRock");
+            gold4MaxRock = document.getElementById("gold4MaxRock");
+
+            wood4MaxGold = document.getElementById("wood4MaxGold");
+            rock4MaxGold = document.getElementById("rock4MaxGold");
+            gold4MaxGold = document.getElementById("gold4MaxGold");
+
+            warningE = document.getElementById("warning");
+
+            seconds = window.document.getElementById("sec"); 
+            minutes = window.document.getElementById("min");
+
+            alert("Begin the game.");
+            setInterval ("timeInc()",1000);
             restartGame();
-
-            var imgHome = new Image(); // 32x32
-            imgHome.src = "House.png";
-            imgHome.onload = function() { context.drawImage(imgHome,268,268); }
-
-            var imgTree = new Image();
-            imgTree.src = "Tree.png";
-            imgTree.onload = function() { context.drawImage(imgTree,380,190); }
-            imgTree.addEventListener("click",treeClick());
 
         }
         
+        function timeInc() {
+            var Current = parseInt(seconds.innerHTML) + 1;
+            if (Current >= 60) {
+                minutes.innerHTML = parseInt(minutes.innerHTML) + 1;
+                seconds.innerHTML = 0;
+            } else {
+                seconds.innerHTML = Current;
+            }
+        }
+            
+        function bestTimeCheck() {
+            
+        }
 
         
     
     </script>
 </head>
 
+<style>
+    .mainSize {
+        height: 60px;
+        width: 802px;
+        display: inline-block;
+    }
+
+    .boxSize {
+        border: 1px solid black;
+        max-width: 800px;
+        min-height: 500px
+    }
+
+    .bottomBtn {
+        background-color: rgb(151, 119, 76);
+        color: white;
+        padding: 5px 5px 5px 5px;
+        font-size: 16px;
+        border: 2px solid black;
+    }
+
+    .bottomBtn2 {
+        background-color: rgb(207, 157, 90);
+    }
+
+    .clickButton {
+        height: 32px;
+        width: 32px;
+        position: relative;
+        top: 50px;
+        left: 120px;
+        border-radius: 6px;
+        color: white;
+    }
+
+    .clickButtonWood{ border: 1px solid darkgreen; }
+    .clickButtonrRock{ 
+        border: 1px solid darkgray;
+        top: 80px;
+        left: 680px;
+        }
+    .clickButtonGold{ 
+        border: 1px solid gold;
+        top: 380px;
+        left: 98px;
+        }
+
+    .warning {
+        font-size: 16px;
+        color: red;
+    
+    }
+
+</style>
+
 <body onLoad="firstStart()">
-    <div style="background-color:rgb(85, 158, 182);height: 100px;width: 602px; display: inline-block;">
-        <div style="font-size: large; font-weight: bolder;text-indent: 8px">--A Game--</div><BR>
-        <span style="padding-left: 8px;font-weight: bolder">Wood: </span> <span id="wood">0</span> <span>/</span> <span id="woodMax">20</span>
-        <span style="padding-left: 8px;font-weight: bolder">Rock: </span> <span id="rock">0</span> <span>/</span> <span id="rockMax">30</span>
-        <span style="padding-left: 8px;font-weight: bolder">Gold: </span> <span id="gold">0</span> <span>/</span> <span id="goldMax">30</span>
+    <div class="mainSize" style="background-color:rgb(85, 158, 182);">
+        <div style="font-size: large; font-weight: bolder;text-indent: 8px">--A Game--</div>
+        <span id="min" style="padding-left: 560px">0</span>
+        <span>min</span>
+        <span id="sec" >0</span>
+        <span>s</span>
+        <span style="padding-left: 40px">Best:</span>
+        <span id="bestmin" style="padding-left: 20px">0</span>
+        <span>min</span>
+        <span id="bestsec" >0</span>
+        <span>s</span>
         <BR>
-        <span style="padding-left: 8px"> </span>
+        <span style="padding-left: 8px;font-weight: bolder">Wood: </span> <span id="wood">0</span> <span>/</span> <span id="woodMax">20</span>
+        <img src="woodRes.png">
+        <span style="padding-left: 8px;font-weight: bolder">Rock: </span> <span id="rock">0</span> <span>/</span> <span id="rockMax">30</span>
+        <img src="rockRes.png">
+        <span style="padding-left: 8px;font-weight: bolder">Gold: </span> <span id="gold">0</span> <span>/</span> <span id="goldMax">30</span>
+        <img src="goldRes.png">
+        <span style="padding-left: 360px"> </span>
         <button onclick="restartGame()">Restart</button>
-        <button onclick="increaseX(1,'wood')">More Wood</button>
     </div>
 
-    <canvas id="canvas" height="560" width="600" style="border: 1px solid black">
-        
-    </canvas>
+    <div id="box" height="360" width="600" class="boxSize">
+        <img id="home" src="House.png" style="position: relative; top: 218px; left: 368px;">
+        <button id="treeBtn" class="clickButton clickButtonWood" style="background: url('tree.png')" onclick="treeClick()">W</button>
+        <button id="rockBtn" class="clickButton clickButtonrRock" style="background: url('rock.png')" onclick="rockClick()">R</button>
+        <button id="goldBtn" class="clickButton clickButtonGold" style="background: url('rock.png')" onclick="goldClick()">G</button>
+    </div>
 
-    
+    <div class="mainSize" style="background-color:rgb(104, 78, 45); height: 200px;">
+        <BR>
+            <span style="padding-left: 8px"></span>
+        <button class="bottomBtn" onclick="WoodMaxClick()">WoodMax+</button>
+        <span id="wood4MaxWood" >2</span>
+        <img src="woodRes.png">
+        <span id="rock4MaxWood">4</span>
+        <img src="rockRes.png">
+        <span id="gold4MaxWood">3</span>
+        <img src="goldRes.png">
 
+        <button class="bottomBtn" onclick="rockMaxClick()">RockMax+</button>
+        <span id="wood4MaxRock">4</span>
+        <img src="woodRes.png">
+        <span id="rock4MaxRock">2</span>
+        <img src="rockRes.png">
+        <span id="gold4MaxRock">5</span>
+        <img src="goldRes.png">
+
+        <button class="bottomBtn" onclick="goldMaxClick()">GoldMax+</button>
+        <span id="wood4MaxGold">2</span>
+        <img src="woodRes.png">
+        <span id="rock4MaxGold">6</span>
+        <img src="rockRes.png">
+        <span id="gold4MaxGold">7</span>
+        <img src="goldRes.png">  <BR>
+
+            <span style="padding-left: 8px"></span>
+        <button class="bottomBtn bottomBtn2" onclick="WoodPowerInc()">WoodPwr+</button>
+        <span id="wood4WoodPwr">3</span>
+        <img src="woodRes.png">
+        <span id="rock4WoodPwr">6</span>
+        <img src="rockRes.png">
+        <span id="gold4WoodPwr">6</span>
+        <img src="goldRes.png">
+
+        <button class="bottomBtn bottomBtn2" >RockPwr+</button>
+        <span id="wood4RockPwr">5</span>
+        <img src="woodRes.png">
+        <span id="rock4RockPwr">3</span>
+        <img src="rockRes.png">
+        <span id="gold4RockPwr">7</span>
+        <img src="goldRes.png">
+
+        <button class="bottomBtn bottomBtn2" >GoldPwr+</button>
+        <span id="wood4GoldPwr">10</span>
+        <img src="woodRes.png">
+        <span id="rock4GoldPwr">8</span>
+        <img src="rockRes.png">
+        <span id="gold4GoldPwr">2</span>
+        <img src="goldRes.png">
+
+        <BR>
+        <span class="warning" id="warning"></span>
+
+    </div>    
 
 </body>
 </html>
