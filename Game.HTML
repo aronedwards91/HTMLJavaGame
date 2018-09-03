@@ -4,6 +4,7 @@
     <script>
         //var setup
         //var *E is a link to a HTML element
+        var winEvent;
     
         var wood;
         var woodMax;
@@ -29,21 +30,119 @@
         var wood4MaxGold;
         var rock4MaxGold;
         var gold4MaxGold;
+        
+        var power = {
+            wood,
+            rock,
+            gold
+        };
 
-        var woodPower;
-        var rockPower;
-        var goldPower;
+        var homeXPos = 318;
+        var homeYPos = 368;
+
+        var playerLife;
+
+        var gameBox;
+        var monsterArray = new Array();
+        var creaturePwr = 10;
+
+        function deleteEventTest() {
+            bestMin.innerHTML = parseInt(winEvent.clientX);
+            bestSec.innerHTML = winEvent.clientY;
+
+        }
+
+        var Creature = {
+            health : 0,
+            imgE : null,
+            xPos : 0,
+            yPos : 0,
+            kill : false,
+            create : function(xPos,yPos){
+                health = 20 * creaturePwr;
+                this.xPos = xPos;
+                this.yPos = yPos;
+                this.imgE = document.createElement("img");
+                this.imgE.src = "enemy.png";
+                this.imgE.style.setProperty("position","absolute");
+                this.imgE.style.setProperty("top",xPos + "px");
+                this.imgE.style.setProperty("left",yPos + "px");
+                gameBox.appendChild(this.imgE);
+
+            },
+            moveToHome : function(){
+                var xDiff = homeXPos - this.xPos;
+                var yDiff = homeYPos - this.yPos;
+                
+                if (xDiff == 0 & yDiff == 0 ){
+                    playerLife.innerHTML = parseInt(playerLife.innerHTML) - 1;
+                    gameBox.removeChild(this.imgE);
+                    this.kill = true;
+                    
+                } else { 
+                    if (xDiff < 0) {
+                        this.xPos = this.xPos - 1;
+                        this.imgE.style.setProperty("top",this.xPos + "px");              
+                    } else if (xDiff > 0) {
+                        this.xPos = this.xPos + 1;
+                        this.imgE.style.setProperty("top",this.xPos + "px");
+                    }
+                    if (yDiff < 0) {
+                        this.yPos = this.yPos - 1;
+                        this.imgE.style.setProperty("left",this.yPos + "px");
+                    } else if (yDiff > 0) {
+                        this.yPos = this.yPos + 1;
+                        this.imgE.style.setProperty("left",this.yPos + "px");
+                    }
+                }         
+            }
+        }
+
+        var laserTower = {
+            damage :  50,
+            moved : false,
+            towerE : null,
+            xPos : 0,
+            yPos : 0,
+            notBuilt : true,
+            intervalHandle : null,
+            create : function(xPos,yPos) {
+                this.xPos = xPos;
+                this.yPos = yPos;
+                this.towerE = document.createElement("img");
+                this.towerE.src = "towerBox.png";
+                this.towerE.style.setProperty("position","absolute");
+                this.towerE.style.setProperty("top",xPos + "px");
+                this.towerE.style.setProperty("left",yPos + "px");
+                gameBox.appendChild(this.towerE);
+            },
+            moveTimer : function() {
+                if(notBuilt) {
+                    intervalHandle = setInterval("this.move()",50);
+                }
+            },
+            move : function(){
+                
+            },
+            builtMoveStop : function(){
+                clearInterval(intervalHandle);
+                notBuilt = false;
+                this.imgE.src = "towerBuilt.png";
+            }
+        }
 
         var warningE;
     
         var minutes;
         var seconds;
+        var bestMin;
+        var bestSec;
 
         var costplus = 1.4;
 
-        function treeClick() { increaseX(woodPower,wood,woodMax); }
-        function rockClick() { increaseX(rockPower,rock,rockMax); }
-        function goldClick() { increaseX(goldPower,gold,goldMax); }
+        function treeClick() { increaseX(parseInt(power.wood.innerHTML),wood,woodMax); }
+        function rockClick() { increaseX(parseInt(power.rock.innerHTML),rock,rockMax); }
+        function goldClick() { increaseX(parseInt(power.gold.innerHTML),gold,goldMax); }
 
         function increaseX(i,resource,resMax) {
             //increases gold resource, checks if above Max and stops if so
@@ -59,43 +158,59 @@
 
         }
 
-        function increaseVal(value,increment,wcost,rcost,gcost,incrGrowth) {
+        function increaseValHTML(value,increment,wcost,rcost,gcost,incrGrowth) {
+            //check if affordable
+            if ( payCost(wcost,rcost,gcost) ) {
+                value.innerHTML = parseInt(value.innerHTML) + increment;
+                increment = increment + incrGrowth;
+            }
+        }
+
+        //returns true if paid
+        function payCost(wcost,rcost,gcost) {
             var woodcostHold = parseInt(wcost.innerHTML);
             var rockcostHold = parseInt(rcost.innerHTML);
             var goldcostHold = parseInt(gcost.innerHTML);
 
-            //check if affordable
             if(woodcostHold <= parseInt(wood.innerHTML) && rockcostHold <= parseInt(rock.innerHTML) && goldcostHold <= parseInt(gold.innerHTML) ) {
                 //pay
                 increaseX((woodcostHold * -1),wood,woodMax);
                 increaseX((rockcostHold * -1),rock,rockMax);
                 increaseX((goldcostHold * -1),gold,goldMax);
                 //increment values
-                value.innerHTML = parseInt(value.innerHTML) + increment;
+                
                 wcost.innerHTML = parseInt(woodcostHold * costplus);
                 rcost.innerHTML = parseInt(rockcostHold * costplus);
                 gcost.innerHTML = parseInt(goldcostHold * costplus);
-                increment = increment + incrGrowth;
+                
+                return true;
 
             } else {
                 warningE.innerHTML = "cannot afford";
                 setTimeout(warningReset,600)
+                return false;
             }
+
         }
 
         function WoodMaxClick() {
-            increaseVal(woodMax,woodMaxInc,wood4MaxWood,rock4MaxWood,gold4MaxWood,5);
+            increaseValHTML(woodMax,woodMaxInc,wood4MaxWood,rock4MaxWood,gold4MaxWood,5);
         }
         function RockMaxClick() {
-            increaseVal(rockMax,rockMaxInc,wood4MaxRock,rock4MaxRock,gold4MaxRock,5);
+            increaseValHTML(rockMax,rockMaxInc,wood4MaxRock,rock4MaxRock,gold4MaxRock,5);
         }
         function GoldMaxClick() {
-            increaseVal(goldMax,goldMaxInc,wood4MaxGold,rock4MaxGold,gold4MaxGold,3);
+            increaseValHTML(goldMax,goldMaxInc,wood4MaxGold,rock4MaxGold,gold4MaxGold,3);
         }
 
-        //rework increaseVal function
         function WoodPowerInc() {
-            increaseVal(woodPower,1,wood4WoodPwr,rock4WoodPwr,gold4WoodPwr,0);
+            increaseValHTML(power.wood,1,wood4WoodPwr,rock4WoodPwr,gold4WoodPwr);
+        }
+        function RockPowerInc() {
+            increaseValHTML(power.rock,1,wood4RockPwr,rock4RockPwr,gold4RockPwr);
+        }
+        function GoldPowerInc() {
+            increaseValHTML(power.gold,1,wood4GoldPwr,rock4GoldPwr,gold4GoldPwr);
         }
 
         function warningReset() { warningE.innerHTML = "";}
@@ -112,13 +227,27 @@
             rockMaxInc = 5;
             goldMaxInc = 5;
 
-            woodPower = 2;
-            rockPower = 2;
-            goldPower = 2;
+            power.wood.innerHTML = 2;
+            power.rock.innerHTML = 2;
+            power.gold.innerHTML = 2;
 
             minutes.innerHTML = 0;
             seconds.innerHTML = 0;
 
+            //creature test
+            monsterArray.push(Object.create(Creature));
+            monsterArray[0].create(160,220);
+            monsterArray.push(Object.create(Creature));
+            monsterArray[1].create(190,280);
+            //tower test
+            var tower = Object.create(laserTower);
+            tower.create(200,400)
+            
+        }
+        //remove 
+        function tickTest() {
+            //monsterArray[0].moveToHome();
+            setInterval("gameLogicTick()",70);
         }
 
         function firstStart() {
@@ -129,6 +258,10 @@
             rockMax = window.document.getElementById("rockMax"); 
             gold = window.document.getElementById("gold"); 
             goldMax = window.document.getElementById("goldMax"); 
+
+            power.wood = document.getElementById("woodPwr");
+            power.rock = document.getElementById("rockPwr");
+            power.gold = document.getElementById("goldPwr");
 
             wood4MaxWood = document.getElementById("wood4MaxWood");
             rock4MaxWood = document.getElementById("rock4MaxWood");
@@ -146,17 +279,47 @@
             rock4MaxGold = document.getElementById("rock4MaxGold");
             gold4MaxGold = document.getElementById("gold4MaxGold");
 
+            playerLife = document.getElementById("life");
+            gameBox = document.getElementById("box");
+            creaturePwr = 10;
+
             warningE = document.getElementById("warning");
 
             seconds = window.document.getElementById("sec"); 
             minutes = window.document.getElementById("min");
+            bestMin = window.document.getElementById("bestmin");
+            bestSec = window.document.getElementById("bestsec");
 
             alert("Begin the game.");
             setInterval ("timeInc()",1000);
             restartGame();
+            //delete
+            winEvent = window.event;
+            console.log(winEvent);
+            setInterval ("deleteEventTest()", 50);
 
         }
-        
+
+        //loop for 
+        function gameLogicTick() {
+            //movement of creatures
+            var monALen = monsterArray.length;
+            for (i = 0; i < monALen; i++) {
+                if(monsterArray[i] != null) {
+                    monsterArray[i].moveToHome();
+                }
+            }
+            //remove creatures once arrived at home
+            for (i = 0; i < monALen; i++) {
+                if(monsterArray[i] != null) {
+                    if (monsterArray[i].kill) {
+                        monsterArray[i] = null;
+                    }
+                }     
+            }
+        }
+
+        //increases play timer
         function timeInc() {
             var Current = parseInt(seconds.innerHTML) + 1;
             if (Current >= 60) {
@@ -170,9 +333,7 @@
         function bestTimeCheck() {
             
         }
-
-        
-    
+  
     </script>
 </head>
 
@@ -233,33 +394,38 @@
 
 <body onLoad="firstStart()">
     <div class="mainSize" style="background-color:rgb(85, 158, 182);">
-        <div style="font-size: large; font-weight: bolder;text-indent: 8px">--A Game--</div>
-        <span id="min" style="padding-left: 560px">0</span>
+        <span style="font-size: large; font-weight: bolder;text-indent: 8px">--A Game--</span> <span style="padding-left: 20px" id="life">20</span> <img src="heart.png" height="16px">
+        <span style="padding-left: 260px"> <button onclick="restartGame()">Restart</button>
+        <span id="min" style="padding-left: 40px">0</span>
         <span>min</span>
         <span id="sec" >0</span>
         <span>s</span>
+        <button onClick="tickTest()">tick</button>
         <span style="padding-left: 40px">Best:</span>
         <span id="bestmin" style="padding-left: 20px">0</span>
         <span>min</span>
         <span id="bestsec" >0</span>
         <span>s</span>
-        <BR>
-        <span style="padding-left: 8px;font-weight: bolder">Wood: </span> <span id="wood">0</span> <span>/</span> <span id="woodMax">20</span>
+        <BR><BR>
+        <span style="padding-left: 8px;font-weight: bolder">Wood: </span> <span>(+</span> <span id="woodPwr">2</span> <span>)</span>
+            <span id="wood">0</span> <span>/</span> <span id="woodMax">20</span>
         <img src="woodRes.png">
-        <span style="padding-left: 8px;font-weight: bolder">Rock: </span> <span id="rock">0</span> <span>/</span> <span id="rockMax">30</span>
+        <span style="padding-left: 8px;font-weight: bolder">Rock: </span> <span>(+</span> <span id="rockPwr">2</span> <span>)</span>
+            <span id="rock">0</span> <span>/</span> <span id="rockMax">30</span>
         <img src="rockRes.png">
-        <span style="padding-left: 8px;font-weight: bolder">Gold: </span> <span id="gold">0</span> <span>/</span> <span id="goldMax">30</span>
+        <span style="padding-left: 8px;font-weight: bolder">Gold: </span> <span>(+</span> <span id="goldPwr">2</span> <span>)</span>
+            <span id="gold">0</span> <span>/</span> <span id="goldMax">30</span>
         <img src="goldRes.png">
         <span style="padding-left: 360px"> </span>
-        <button onclick="restartGame()">Restart</button>
-    </div>
+        
+    </div><BR>
 
-    <div id="box" height="360" width="600" class="boxSize">
-        <img id="home" src="House.png" style="position: relative; top: 218px; left: 368px;">
+    <span id="box" height="360" width="600" class="boxSize" style="display: block">
+        <img id="home" src="House.png" style="position: absolute; top: 318px; left: 368px;">
         <button id="treeBtn" class="clickButton clickButtonWood" style="background: url('tree.png')" onclick="treeClick()">W</button>
         <button id="rockBtn" class="clickButton clickButtonrRock" style="background: url('rock.png')" onclick="rockClick()">R</button>
-        <button id="goldBtn" class="clickButton clickButtonGold" style="background: url('rock.png')" onclick="goldClick()">G</button>
-    </div>
+        <button id="goldBtn" class="clickButton clickButtonGold" style="background: url('gold.png')" onclick="goldClick()">G</button>
+    </span>
 
     <div class="mainSize" style="background-color:rgb(104, 78, 45); height: 200px;">
         <BR>
@@ -272,7 +438,7 @@
         <span id="gold4MaxWood">3</span>
         <img src="goldRes.png">
 
-        <button class="bottomBtn" onclick="rockMaxClick()">RockMax+</button>
+        <button class="bottomBtn" onclick="RockMaxClick()">RockMax+</button>
         <span id="wood4MaxRock">4</span>
         <img src="woodRes.png">
         <span id="rock4MaxRock">2</span>
@@ -280,7 +446,7 @@
         <span id="gold4MaxRock">5</span>
         <img src="goldRes.png">
 
-        <button class="bottomBtn" onclick="goldMaxClick()">GoldMax+</button>
+        <button class="bottomBtn" onclick="GoldMaxClick()">GoldMax+</button>
         <span id="wood4MaxGold">2</span>
         <img src="woodRes.png">
         <span id="rock4MaxGold">6</span>
@@ -297,7 +463,7 @@
         <span id="gold4WoodPwr">6</span>
         <img src="goldRes.png">
 
-        <button class="bottomBtn bottomBtn2" >RockPwr+</button>
+        <button class="bottomBtn bottomBtn2" onclick="RockPowerInc()">RockPwr+</button>
         <span id="wood4RockPwr">5</span>
         <img src="woodRes.png">
         <span id="rock4RockPwr">3</span>
@@ -305,7 +471,7 @@
         <span id="gold4RockPwr">7</span>
         <img src="goldRes.png">
 
-        <button class="bottomBtn bottomBtn2" >GoldPwr+</button>
+        <button class="bottomBtn bottomBtn2" onclick="GoldPowerInc()">GoldPwr+</button>
         <span id="wood4GoldPwr">10</span>
         <img src="woodRes.png">
         <span id="rock4GoldPwr">8</span>
