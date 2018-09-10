@@ -46,12 +46,6 @@
         var monsterArray = new Array();
         var creaturePwr = 10;
 
-        function deleteEventTest() {
-            bestMin.innerHTML = parseInt(winEvent.clientX);
-            bestSec.innerHTML = winEvent.clientY;
-
-        }
-
         var Creature = {
             health : 0,
             imgE : null,
@@ -129,6 +123,39 @@
                 notBuilt = false;
                 this.imgE.src = "towerBuilt.png";
             }
+        }
+
+        var drag = {
+            dragElement : function (elm) {
+                var posX = 0, posY = 0, posMX = 0 , posMY = 0;
+                elm.onmousedown = this.dragMouseDown;
+            },
+            dragMouseDown : function (e) {
+                e = e || window.event;
+                e.preventDefault;
+                //mouse cursor grab
+                posMX = e.clientX;
+                posMY = e.clientY;
+                document.onmouseup = this.closeDragElement;
+                document.onmousemove = this.elementDrag;
+            },
+            elementDrag : function (e) {
+                e = e || window.event;
+                e.preventDefault;
+                //calc new position
+                posX = posMX - e.clientX;
+                posY = posMY - e.clientY;
+                posMX = e.clientX;
+                posMY = e.clientY;
+                //set element new
+                elm.style.top = (elmnt.offsetTop - posY) + "px";
+                elm.style.left = (elmnt.offsetLeft - posX) + "px";
+            },
+            dragClose : function() {
+                document.onmouseup = null;
+                document.onmousemove = null;
+            }
+
         }
 
         var warningE;
@@ -242,8 +269,10 @@
             //tower test
             var tower = Object.create(laserTower);
             tower.create(200,400)
+            drag.dragElement(tower.towerE);
             
         }
+
         //remove 
         function tickTest() {
             //monsterArray[0].moveToHome();
@@ -293,10 +322,6 @@
             alert("Begin the game.");
             setInterval ("timeInc()",1000);
             restartGame();
-            //delete
-            winEvent = window.event;
-            console.log(winEvent);
-            setInterval ("deleteEventTest()", 50);
 
         }
 
